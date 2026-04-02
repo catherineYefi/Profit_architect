@@ -1,33 +1,21 @@
-import { useState, useCallback } from 'react'
-
-// Центральное хранилище состояния приложения
-// Экспортируем хук useAppStore — используй везде вместо локального useState
+import { useState, useEffect, useCallback } from 'react'
 
 const initialState = {
-  // Навигация
-  currentStep: 1, // 1–5
-  
-  // Шаг 1 — выбор ниши
-  selectedNiche: null, // id ниши: 'marketplace' | 'infobiz' | 'broker' | 'production' | 'b2b'
-  
-  // Шаг 2 — входные параметры
-  params: {}, // { [paramKey]: value }
-  
-  // Шаг 3 — диагностика (результат от GPT)
-  diagnostic: null, // { formulaText, kfuList, model1, model2, levers, wrdp }
+  currentStep: 1,
+  selectedNiche: null,
+  params: {},
+  diagnostic: null,
   diagnosticLoading: false,
   diagnosticError: null,
-  
-  // Шаг 4 — финансовый прогноз
-  dividendClient: 30,  // % дивидендов клиента
-  dividendFund: 10,    // % дивидендов фонда (10–25%)
-  
-  // Шаг 5 — инвестиционный калькулятор
-  extraInvestment: 0,  // доп. инвестиции в рублях
+  dividendClient: 30,
+  dividendFund: 10,
+  extraInvestment: 0,
+  targetProfit: 0,
+  targetRevenue: 0,
+  targetMargin: 25,
+  targetCosts: 0,
+  reinvest: 0,
 }
-
-// Простой глобальный стор через замыкание + callback
-// Для MVP достаточно, потом можно заменить на Zustand
 
 let globalState = { ...initialState }
 const listeners = new Set()
@@ -39,25 +27,15 @@ function notifyListeners() {
 export function useAppStore() {
   const [state, setState] = useState({ ...globalState })
 
-  const subscribe = useCallback(() => {
+  useEffect(() => {
     const handler = (newState) => setState(newState)
     listeners.add(handler)
+    setState({ ...globalState })
     return () => listeners.delete(handler)
   }, [])
 
-  // Подписываемся при первом рендере
-  useState(() => {
-    const unsub = subscribe()
-    return unsub
-  })
-
   const set = useCallback((updates) => {
     globalState = { ...globalState, ...updates }
-    notifyListeners()
-  }, [])
-
-  const goToStep = useCallback((step) => {
-    globalState = { ...globalState, currentStep: step }
     notifyListeners()
   }, [])
 
@@ -80,5 +58,5 @@ export function useAppStore() {
     notifyListeners()
   }, [])
 
-  return { state, set, goToStep, nextStep, prevStep, reset }
+  return { state, set, nextStep, prevStep, reset }
 }
