@@ -6,6 +6,8 @@ import ParamsForm       from './components/ParamsForm'
 import DiagnosticPanel  from './components/DiagnosticPanel'
 import FinancialForecast from './components/FinancialForecast'
 import InvestCalc       from './components/InvestCalc'
+import NichePreview from './components/NichePreview'
+import Summary from './components/Summary'
 
 const STEPS = {
   1: NicheSelector,
@@ -13,9 +15,10 @@ const STEPS = {
   3: DiagnosticPanel,
   4: FinancialForecast,
   5: InvestCalc,
+  6: Summary,
 }
 
-const STEP_LABELS = ['Ниша', 'Параметры', 'Диагностика', 'Прогноз', 'Инвестиции']
+const STEP_LABELS = ['Ниша','Превью','Параметры','Диагностика','Прогноз','Итог']
 
 export default function App() {
   const { state, set, nextStep, prevStep } = useAppStore()
@@ -78,7 +81,7 @@ export default function App() {
         flex: 1, maxWidth: 780, width: '100%',
         margin: '0 auto', padding: '40px 24px 100px',
       }}>
-        <StepIndicator current={current} total={5} />
+        <StepIndicator current={current} total={6} />
         <StepComponent />
       </main>
 
@@ -132,19 +135,19 @@ export default function App() {
         {/* Вперёд */}
         <button
           onClick={nextStep}
-          disabled={current === 5}
+          disabled={current === 6}
           style={{
             display: 'flex', alignItems: 'center', gap: 6,
-            background: current === 5 ? 'none' : 'var(--green)',
-            border: current === 5 ? '1px solid var(--border)' : 'none',
+            background: current === 6 ? 'none' : 'var(--green)',
+            border: current === 6 ? '1px solid var(--border)' : 'none',
             borderRadius: 8, padding: '8px 16px',
-            color: current === 5 ? 'var(--text3)' : '#0D0F14',
-            fontSize: 13, fontWeight: current === 5 ? 400 : 700,
-            cursor: current === 5 ? 'not-allowed' : 'pointer',
-            opacity: current === 5 ? 0.4 : 1, transition: 'all .15s',
+            color: current === 6 ? 'var(--text3)' : '#0D0F14',
+            fontSize: 13, fontWeight: current === 6 ? 400 : 700,
+            cursor: current === 6 ? 'not-allowed' : 'pointer',
+            opacity: current === 6 ? 0.4 : 1, transition: 'all .15s',
           }}
         >
-          {current < 5 ? STEP_LABELS[current] : 'Готово'} →
+          {current < 6 ? STEP_LABELS[current] : 'Готово'} →
         </button>
       </div>
 
