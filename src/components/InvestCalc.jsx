@@ -5,7 +5,7 @@ import {
 } from 'recharts'
 import { useAppStore } from '../store/useAppStore'
 import { buildGrowthProjection, formatMoney } from '../utils/financialMath'
-import { SectionLabel, Card, Slider, BtnSecondary, MetricCard } from './ui'
+import { SectionLabel, Card, Slider, BtnSecondary, BtnPrimary, MetricCard } from './ui'
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null
@@ -25,7 +25,7 @@ const CustomTooltip = ({ active, payload, label }) => {
 }
 
 export default function InvestCalc() {
-  const { state, set, prevStep } = useAppStore()
+  const { state, set, prevStep, nextStep } = useAppStore()
 
   const targetProfit  = state.targetProfit  || 500_000
   const targetMargin  = state.targetMargin  || 25
@@ -50,7 +50,7 @@ export default function InvestCalc() {
 
   return (
     <div>
-      <SectionLabel>Шаг 5 из 5</SectionLabel>
+      <SectionLabel>Шаг 6 из 7</SectionLabel>
       <h2 style={{
         fontFamily: 'Syne', fontSize: 20, fontWeight: 700,
         color: '#fff', marginBottom: 6
@@ -121,7 +121,6 @@ export default function InvestCalc() {
           </LineChart>
         </ResponsiveContainer>
 
-        {/* Легенда вручную */}
         <div style={{ display: 'flex', gap: 20, padding: '8px 4px 0', fontSize: 11, color: 'var(--text2)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <div style={{ width: 16, height: 2, background: '#2DBF8A', borderRadius: 1 }} />
@@ -168,12 +167,15 @@ export default function InvestCalc() {
 
       <div style={{ display: 'flex', gap: 10 }}>
         <BtnSecondary onClick={prevStep}>← Назад</BtnSecondary>
+        <BtnPrimary onClick={nextStep}>
+          Итоговый разбор →
+        </BtnPrimary>
         <button
           onClick={() => { if (window.confirm('Начать новый анализ?')) window.location.reload() }}
           style={{
-            background: 'var(--purple)', color: '#fff', fontWeight: 700,
-            fontSize: 13, padding: '10px 22px', borderRadius: 8,
-            border: 'none', cursor: 'pointer',
+            background: 'none', border: '1px solid var(--border)',
+            color: 'var(--text3)', fontSize: 12, padding: '10px 14px',
+            borderRadius: 8, cursor: 'pointer',
           }}
         >
           Новый анализ
