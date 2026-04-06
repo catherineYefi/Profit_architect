@@ -27,7 +27,7 @@ export default function App() {
 
   const goToStep = (step) => {
     // Можно переходить только на пройденные шаги или текущий
-    if (step <= current) {
+    if (step <= current || step === 6) {
       set({ currentStep: step })
     }
   }
