@@ -20,21 +20,43 @@ const NICHE_ICONS = {
 }
 
 // ─── BLACK BOX VISUAL ────────────────────────────────────────
-function BlackBox({ nicheId, params, targetRevenue, targetMargin, targetProfit }) {
+function BlackBox({ nicheId, params, targetRevenue, targetMargin, targetProfit, niche }) {
   const revenue    = parseFloat(params?.revenue || 0)
-  const margin     = parseFloat(params?.orderMargin || params?.margin || params?.conversion || 20)
+  const margin     = parseFloat(params?.orderMargin || params?.margin || 20)
   const fixedCosts = parseFloat(params?.payroll || 200000)
   const profit1    = Math.max(0, revenue * margin / 100 - fixedCosts)
 
+  // Целевые значения — из стейта или из бенчмарков ниши как fallback
+  const tRevenue = targetRevenue || (revenue * 1.4)
+  const tMargin  = (targetMargin && !isNaN(targetMargin)) ? targetMargin
+    : parseFloat((niche?.benchmarks?.find(b => b.metric.toLowerCase().includes('маржа'))?.strong || '').replace(/[^0-9.]/g, '') || 35)
+  const tProfit  = targetProfit || Math.max(0, tRevenue * tMargin / 100 - fixedCosts * 1.1)
+
   const metrics1 = [
-    { name: 'Выручка / мес',  val: revenue    ? formatMoney(revenue)    + ' ₽' : '—' },
-    { name: 'Маржа',          val: margin      ? margin + '%'             : '—' },
-    { name: 'Прибыль / мес',  val: profit1     ? formatMoney(profit1) + ' ₽' : '—' },
+    { name: 'Выручка / мес', val: revenue ? formatMoney(revenue) + ' ₽' : '—' },
+    { name: 'Маржа',         val: margin  ? margin + '%'           : '—' },
+    { name: 'Прибыль / мес', val: profit1 ? formatMoney(profit1) + ' ₽' : '—' },
   ]
+
   const metrics2 = [
-    { name: 'Выручка / мес',  val: targetRevenue ? formatMoney(targetRevenue) + ' ₽' : '—', delta: targetRevenue && revenue ? `+${Math.round((targetRevenue/revenue-1)*100)}%` : null },
-    { name: 'Маржа',          val: targetMargin  ? targetMargin + '%'                 : '—', delta: margin ? `+${(targetMargin-margin).toFixed(0)} п.п.` : null },
-    { name: 'Прибыль / мес',  val: targetProfit  ? formatMoney(targetProfit) + ' ₽'  : '—', delta: profit1 && targetProfit ? `×${(targetProfit/Math.max(profit1,1)).toFixed(1)}` : null },
+    {
+      name: 'Выручка / мес',
+      val: formatMoney(Math.round(tRevenue)) + ' ₽',
+      delta: revenue ? `+${Math.round((tRevenue / revenue - 1) * 100)}%` : null,
+      hint: 'Цель роста выручки с Фондом'
+    },
+    {
+      name: 'Маржа',
+      val: Math.round(tMargin) + '%',
+      delta: margin && tMargin > margin ? `+${(tMargin - margin).toFixed(0)} п.п.` : null,
+      hint: niche?.benchmarks?.find(b => b.metric.toLowerCase().includes('маржа'))?.strong || 'Целевой уровень'
+    },
+    {
+      name: 'Прибыль / мес',
+      val: formatMoney(Math.round(tProfit)) + ' ₽',
+      delta: profit1 && tProfit > profit1 ? `×${(tProfit / Math.max(profit1, 1)).toFixed(1)}` : null,
+      hint: 'При достижении модели 2.0'
+    },
   ]
 
   const ArrowRow = ({ color, delay }) => (
@@ -77,45 +99,31 @@ function BlackBox({ nicheId, params, targetRevenue, targetMargin, targetProfit }
           </div>
         </div>
 
-        {/* CENTER — arrows + box */}
+        {/* CENTER */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch', padding: '0 6px', gap: 6 }}>
-          {/* Arrows in (dim) */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {['.0s','.3s','.6s'].map((d,i) => <ArrowRow key={i} color="#444" delay={d} />)}
           </div>
-
-          {/* The Box */}
           <div style={{
             background: 'var(--bg2)', border: '1px solid #262B38',
             borderRadius: 12, padding: '16px 8px',
             display: 'flex', flexDirection: 'column', alignItems: 'center',
             gap: 8, position: 'relative', overflow: 'hidden',
           }}>
-            {/* Glow pulse */}
             <div style={{
               position: 'absolute', inset: -1, borderRadius: 13,
               background: 'linear-gradient(135deg,rgba(45,191,138,.12),rgba(139,124,246,.08),rgba(45,191,138,.12))',
               animation: 'bb-pulse 3s ease-in-out infinite',
             }} />
-            {/* Scan line */}
-            <div style={{
-              position: 'absolute', left: 0, right: 0, height: '35%',
-              background: 'linear-gradient(180deg,transparent,rgba(45,191,138,.03),transparent)',
-              animation: 'bb-flow 4s linear infinite',
-              top: 0,
-            }} />
-            {/* Particles */}
             {['20%','45%','70%'].map((y, i) => (
               <div key={i} style={{
                 position: 'absolute', width: 3, height: 3, borderRadius: '50%',
                 background: i===1 ? '#8B7CF6' : '#2DBF8A',
                 top: y, left: '-4px',
                 animation: `bb-particle ${1.4+i*.3}s linear infinite`,
-                animationDelay: `${i*.4}s`,
-                opacity: .7,
+                animationDelay: `${i*.4}s`, opacity: .7,
               }} />
             ))}
-            {/* Icon */}
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2DBF8A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ position: 'relative', filter: 'drop-shadow(0 0 6px rgba(45,191,138,.4))' }}>
               <circle cx="12" cy="12" r="3"/>
               <path d="M19.07 4.93l-1.41 1.41M5.34 18.66l-1.41 1.41M12 2v2M12 20v2M4.93 4.93l1.41 1.41M18.66 18.66l1.41 1.41M2 12h2M20 12h2"/>
@@ -127,12 +135,8 @@ function BlackBox({ nicheId, params, targetRevenue, targetMargin, targetProfit }
               fontSize: 8, padding: '2px 6px', borderRadius: 3, position: 'relative',
               background: 'rgba(45,191,138,.15)', border: '1px solid rgba(45,191,138,.3)', color: 'var(--green)',
               letterSpacing: '.06em', fontWeight: 600,
-            }}>
-              ФОНД
-            </div>
+            }}>ФОНД</div>
           </div>
-
-          {/* Arrows out (green) */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {['.0s','.3s','.6s'].map((d,i) => <ArrowRow key={i} color="#2DBF8A" delay={d} />)}
           </div>
@@ -141,24 +145,28 @@ function BlackBox({ nicheId, params, targetRevenue, targetMargin, targetProfit }
         {/* RIGHT — Model 2.0 */}
         <div>
           <div style={{ fontSize: 10, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--green)', marginBottom: 8 }}>
-            Модель 2.0 · цель
+            Модель 2.0 · цель с Фондом
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {metrics2.map((m, i) => (
               <div key={i} style={{
                 background: 'rgba(45,191,138,.05)', border: '1px solid rgba(45,191,138,.2)',
                 borderRadius: 8, padding: '9px 12px',
-                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
               }}>
-                <span style={{ fontSize: 11, color: 'var(--text2)' }}>{m.name}</span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--green)' }}>{m.val}</span>
-                  {m.delta && (
-                    <span style={{ fontSize: 9, padding: '1px 5px', borderRadius: 3, background: 'rgba(45,191,138,.15)', color: 'var(--green)', fontWeight: 600 }}>
-                      {m.delta}
-                    </span>
-                  )}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: m.hint ? 3 : 0 }}>
+                  <span style={{ fontSize: 11, color: 'var(--text2)' }}>{m.name}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--green)' }}>{m.val}</span>
+                    {m.delta && (
+                      <span style={{ fontSize: 9, padding: '1px 5px', borderRadius: 3, background: 'rgba(45,191,138,.15)', color: 'var(--green)', fontWeight: 600 }}>
+                        {m.delta}
+                      </span>
+                    )}
+                  </div>
                 </div>
+                {m.hint && (
+                  <div style={{ fontSize: 10, color: 'var(--text3)', marginTop: 2 }}>{m.hint}</div>
+                )}
               </div>
             ))}
           </div>
@@ -199,6 +207,7 @@ export default function Summary() {
         targetRevenue={state.targetRevenue}
         targetMargin={state.targetMargin}
         targetProfit={state.targetProfit}
+        niche={niche}
       />
 
       {/* 01 — Ниша и тип бизнеса */}
