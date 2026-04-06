@@ -1,79 +1,69 @@
-function BlackBox({ niche, model1, model2, streams }) {
-  const metrics1 = [
-    { name:'Выручка / мес',  val: model1.revenue || '—' },
-    { name:'Маржа',          val: model1.margin  || '—' },
-    { name:'Рентабельность', val: model1.rent    || '—' },
-    { name:'Прибыль / мес',  val: model1.profit  || '—' },
-  ]
-  const metrics2 = [
-    { name:'Выручка / мес',  val: model2.revenue || '—', delta: model2.dRevenue },
-    { name:'Маржа',          val: model2.margin  || '—', delta: model2.dMargin  },
-    { name:'Рентабельность', val: model2.rent    || '—', delta: model2.dRent    },
-    { name:'Прибыль / мес',  val: model2.profit  || '—', delta: model2.dProfit  },
-  ]
+cat > src/components/NicheSelector.jsx << 'EOF'
+import React from 'react'
+import { nicheList } from '../data/nicheConfigs'
+import { useAppStore } from '../store/useAppStore'
+import { SectionLabel, BtnPrimary } from './ui'
+
+const NICHE_ICONS = {
+  marketplace: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>,
+  infobiz: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>,
+  broker: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>,
+  rental: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>,
+  event: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>,
+  clinic: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>,
+  production: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M5.34 18.66l-1.41 1.41M12 2v2M12 20v2M4.93 4.93l1.41 1.41M18.66 18.66l1.41 1.41M2 12h2M20 12h2"/></svg>,
+  b2b: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>,
+}
+
+export default function NicheSelector() {
+  const { state, set, nextStep } = useAppStore()
+  const selected = state.selectedNiche
+
   return (
-    <div style={{ display:'grid', gridTemplateColumns:'1fr 140px 1fr', gap:0, alignItems:'center', marginBottom:20 }}>
-      {/* LEFT */}
-      <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
-        <div style={{ fontSize:10, letterSpacing:'.15em', textTransform:'uppercase', color:'var(--text3)', marginBottom:4 }}>Модель 1.0 · сейчас</div>
-        {metrics1.map((m,i) => (
-          <div key={i} style={{ background:'var(--bg3)', border:'1px solid var(--border)', borderRadius:8, padding:'9px 12px', display:'flex', justifyContent:'space-between', opacity:.6 }}>
-            <span style={{ fontSize:11, color:'var(--text3)' }}>{m.name}</span>
-            <span style={{ fontSize:12, fontWeight:600, color:'var(--text2)' }}>{m.val}</span>
-          </div>
-        ))}
+    <div>
+      <SectionLabel>Шаг 1 из 6</SectionLabel>
+      <h2 style={{ fontFamily:'Syne', fontSize:22, fontWeight:700, color:'#fff', marginBottom:8 }}>
+        Выберите тип бизнеса
+      </h2>
+      <p style={{ color:'var(--text2)', fontSize:13, marginBottom:24, maxWidth:480 }}>
+        Под каждую нишу своя формула прибыли, КФУ и бенчмарки.
+      </p>
+
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(180px,1fr))', gap:10, marginBottom:28 }}>
+        {nicheList.map(n => {
+          const isSelected = selected === n.id
+          const isEmpty = !n.params?.length
+          return (
+            <button
+              key={n.id}
+              onClick={() => !isEmpty && set({ selectedNiche:n.id, params:{}, diagnostic:null })}
+              disabled={isEmpty}
+              style={{
+                background: isSelected ? 'var(--green-dim)' : 'var(--bg2)',
+                border: `1px solid ${isSelected ? 'rgba(45,191,138,.4)' : 'var(--border)'}`,
+                borderRadius:10, padding:'16px', textAlign:'left',
+                cursor: isEmpty ? 'not-allowed' : 'pointer',
+                opacity: isEmpty ? 0.35 : 1, transition:'all .15s',
+              }}
+            >
+              <div style={{ color: isSelected ? 'var(--green)' : 'var(--text2)', marginBottom:10 }}>
+                {NICHE_ICONS[n.id]}
+              </div>
+              <div style={{ fontWeight:600, fontSize:14, color: isSelected ? 'var(--green)' : 'var(--text)' }}>
+                {n.name}
+              </div>
+              <div style={{ fontSize:11, color:'var(--text3)', marginTop:3 }}>
+                {isEmpty ? 'Скоро' : n.desc}
+              </div>
+            </button>
+          )
+        })}
       </div>
 
-      {/* CENTER BOX */}
-      <div style={{ display:'flex', flexDirection:'column', alignItems:'center', padding:'0 8px', gap:8 }}>
-        {/* arrows in */}
-        <div style={{ display:'flex', flexDirection:'column', gap:10, marginBottom:4 }}>
-          {[0,1,2,3].map(i => (
-            <div key={i} style={{ height:2, width:'100%', position:'relative', overflow:'hidden', background:'var(--border)', borderRadius:1 }}>
-              <div style={{
-                position:'absolute', top:0, left:0, height:'100%', width:'30%',
-                background:'linear-gradient(90deg,transparent,var(--green),transparent)',
-                animation:`flow ${1.4+i*.2}s linear infinite`,
-                animationDelay:`${i*.3}s`
-              }}/>
-            </div>
-          ))}
-        </div>
-
-        {/* Box */}
-        <div style={{
-          width:120, height:140, background:'var(--bg2)',
-          border:'1px solid var(--border)', borderRadius:12,
-          display:'flex', flexDirection:'column', alignItems:'center',
-          justifyContent:'center', gap:8, position:'relative', overflow:'hidden',
-        }}>
-          <div style={{ position:'absolute', inset:-1, borderRadius:13, background:'linear-gradient(135deg,rgba(45,191,138,.1),rgba(139,124,246,.08))', animation:'pulse 3s ease-in-out infinite' }}/>
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2DBF8A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ position:'relative' }}>
-            <circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M5.34 18.66l-1.41 1.41M12 2v2M12 20v2M4.93 4.93l1.41 1.41M18.66 18.66l1.41 1.41M2 12h2M20 12h2"/>
-          </svg>
-          <div style={{ fontFamily:'Syne', fontSize:10, fontWeight:700, color:'#fff', textAlign:'center', position:'relative', lineHeight:1.3 }}>Архитектор<br/>прибыли</div>
-          <div style={{ fontSize:9, padding:'2px 7px', borderRadius:3, background:'rgba(45,191,138,.15)', border:'1px solid rgba(45,191,138,.3)', color:'var(--green)', position:'relative' }}>ФОНД</div>
-        </div>
-      </div>
-
-      {/* RIGHT */}
-      <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
-        <div style={{ fontSize:10, letterSpacing:'.15em', textTransform:'uppercase', color:'var(--green)', marginBottom:4 }}>Модель 2.0 · цель</div>
-        {metrics2.map((m,i) => (
-          <div key={i} style={{ background:'rgba(45,191,138,.04)', border:'1px solid rgba(45,191,138,.2)', borderRadius:8, padding:'9px 12px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-            <span style={{ fontSize:11, color:'var(--text2)' }}>{m.name}</span>
-            <div style={{ display:'flex', alignItems:'center', gap:6 }}>
-              <span style={{ fontSize:12, fontWeight:600, color:'var(--green)' }}>{m.val}</span>
-              {m.delta && <span style={{ fontSize:9, padding:'1px 5px', borderRadius:3, background:'rgba(45,191,138,.15)', color:'var(--green)' }}>{m.delta}</span>}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <style>{`
-        @keyframes flow{0%{left:-30%}100%{left:130%}}
-        @keyframes pulse{0%,100%{opacity:0}50%{opacity:1}}
-      `}</style>
+      <BtnPrimary onClick={nextStep} disabled={!selected}>
+        Далее — посмотреть модель →
+      </BtnPrimary>
     </div>
   )
 }
+EOF
