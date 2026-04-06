@@ -15,10 +15,11 @@ const STEPS = {
   3: ParamsForm,
   4: DiagnosticPanel,
   5: FinancialForecast,
-  6: Summary,
+  6: InvestCalc,
+  7: Summary,
 }
 
-const STEP_LABELS = ['Ниша','Превью','Параметры','Диагностика','Прогноз','Итог']
+const STEP_LABELS = ['Ниша','Превью','Параметры','Диагностика','Прогноз','Инвестиции','Итог']
 
 export default function App() {
   const { state, set, nextStep, prevStep } = useAppStore()
@@ -26,7 +27,7 @@ export default function App() {
   const current = state.currentStep
 
   const goToStep = (step) => {
-    if (step <= current || step === 6) {
+    if (step <= current || step === 7) {
       set({ currentStep: step })
     }
   }
@@ -77,7 +78,7 @@ export default function App() {
         flex:1, maxWidth:780, width:'100%',
         margin:'0 auto', padding:'40px 24px 100px',
       }}>
-        <StepIndicator current={current} total={6} />
+        <StepIndicator current={current} total={7} />
         <StepComponent />
       </main>
 
@@ -126,19 +127,19 @@ export default function App() {
 
         <button
           onClick={nextStep}
-          disabled={current === 6}
+          disabled={current === 7}
           style={{
             display:'flex', alignItems:'center', gap:6,
-            background: current === 6 ? 'none' : 'var(--green)',
-            border: current === 6 ? '1px solid var(--border)' : 'none',
+            background: current === 7 ? 'none' : 'var(--green)',
+            border: current === 7 ? '1px solid var(--border)' : 'none',
             borderRadius:8, padding:'8px 16px',
-            color: current === 6 ? 'var(--text3)' : '#0D0F14',
-            fontSize:13, fontWeight: current === 6 ? 400 : 700,
-            cursor: current === 6 ? 'not-allowed' : 'pointer',
-            opacity: current === 6 ? 0.4 : 1, transition:'all .15s',
+            color: current === 7 ? 'var(--text3)' : '#0D0F14',
+            fontSize:13, fontWeight: current === 7 ? 400 : 700,
+            cursor: current === 7 ? 'not-allowed' : 'pointer',
+            opacity: current === 7 ? 0.4 : 1, transition:'all .15s',
           }}
         >
-          {current < 6 ? STEP_LABELS[current] : 'Готово'} →
+          {current < 7 ? STEP_LABELS[current] : 'Готово'} →
         </button>
       </div>
     </div>
