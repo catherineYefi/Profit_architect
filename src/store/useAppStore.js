@@ -40,7 +40,7 @@ export function useAppStore() {
   }, [])
 
   const nextStep = useCallback(() => {
-    if (globalState.currentStep < 5) {
+    if (globalState.currentStep < 7) {
       globalState = { ...globalState, currentStep: globalState.currentStep + 1 }
       notifyListeners()
     }
