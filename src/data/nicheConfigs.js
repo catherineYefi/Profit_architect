@@ -176,6 +176,7 @@ export const nicheConfigs = {
     formulaShort: 'Прибыль = Сделки × (Комиссия − CAC − sales cost) − Фиксированные расходы',
 
     params: [
+      { key: 'commissionPct', name: 'Процент комиссии от застройщика', unit: '%', example: '3.5' },
       { key: 'dealCount',    name: 'Количество закрытых сделок / мес',     unit: 'шт',  example: '12' },
       { key: 'commission',   name: 'Средняя комиссия на сделку',            unit: '₽',   example: '120 000' },
       { key: 'conversion',   name: 'Конверсия лид → сделка',               unit: '%',   example: '1.2' },
