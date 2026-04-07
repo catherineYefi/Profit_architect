@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 
 const initialState = {
-  currentStep: 1,
+  currentStep: 0,
   selectedNiche: null,
   params: {},
   diagnostic: null,
