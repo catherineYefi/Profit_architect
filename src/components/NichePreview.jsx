@@ -90,7 +90,6 @@ export default function NichePreview() {
           {niche.formulaLevels?.[3]?.formula}
         </div>
         <button
-          onClick={() => {}}
           id={`formula-toggle-${state.selectedNiche}`}
           style={{ background: 'none', border: 'none', fontSize: 11, color: 'var(--text3)', cursor: 'pointer', padding: 0 }}
           onClick={(e) => {
