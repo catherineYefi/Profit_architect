@@ -31,10 +31,18 @@ export default function DiagnosticPanel() {
   if (state.diagnosticError) {
     return (
       <div>
-        <div style={{ color: 'var(--red)', marginBottom: 16, fontSize: 13 }}>
+        <SectionLabel>Шаг 4 из 7</SectionLabel>
+        <div style={{
+          padding: '14px 16px', background: 'var(--red-dim)',
+          border: '1px solid rgba(240,96,96,.2)', borderRadius: 8,
+          fontSize: 13, color: 'var(--red)', marginBottom: 16,
+        }}>
           Ошибка: {state.diagnosticError}
         </div>
-        <BtnSecondary onClick={runDiagnostic}>Попробовать снова</BtnSecondary>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <BtnSecondary onClick={prevStep}>← Назад</BtnSecondary>
+          <BtnPrimary onClick={runDiagnostic}>Попробовать снова</BtnPrimary>
+        </div>
       </div>
     )
   }
@@ -44,17 +52,39 @@ export default function DiagnosticPanel() {
 
   return (
     <div>
-      <SectionLabel>Шаг 3 из 5</SectionLabel>
-      <h2 style={{ fontFamily: 'Syne', fontSize: 20, fontWeight: 700, color: '#fff', marginBottom: 20 }}>
-        Диагностика бизнес-модели
-      </h2>
+      <SectionLabel>Шаг 4 из 7</SectionLabel>
+
+      {/* Заголовок + кнопка Обновить рядом */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20, gap: 12 }}>
+        <h2 style={{ fontFamily: 'Syne', fontSize: 20, fontWeight: 700, color: '#fff' }}>
+          Диагностика бизнес-модели
+        </h2>
+        <button
+          onClick={runDiagnostic}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0,
+            background: 'var(--bg3)', border: '1px solid var(--border2)',
+            borderRadius: 8, padding: '8px 14px',
+            color: 'var(--text2)', fontSize: 12, fontWeight: 500, cursor: 'pointer',
+            transition: 'all .15s',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--green)'; e.currentTarget.style.color = 'var(--green)' }}
+          onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border2)'; e.currentTarget.style.color = 'var(--text2)' }}
+        >
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+            <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+          </svg>
+          Обновить анализ
+        </button>
+      </div>
 
       {/* Формула прибыли */}
       <Card accent style={{ marginBottom: 14 }}>
         <div style={{ fontSize: 10, letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--text3)', marginBottom: 8 }}>
           Формула прибыли · {niche.name}
         </div>
-        <div style={{ fontFamily: 'Syne', fontSize: 14, color: 'var(--green)', fontWeight: 600, marginBottom: 8 }}>
+        <div style={{ fontFamily: 'Syne', fontSize: 13, color: 'var(--green)', fontWeight: 600, marginBottom: 8, fontFamily: 'monospace' }}>
           {niche.formulaShort}
         </div>
         {d.formulaInsight && (
@@ -78,9 +108,10 @@ export default function DiagnosticPanel() {
             borderBottom: i < niche.kfus.length - 1 ? '1px solid var(--border)' : 'none',
           }}>
             <div style={{
-              width: 20, height: 20, borderRadius: '50%', background: k.weight === 'high' ? 'var(--green-dim)' : 'var(--bg3)',
+              width: 20, height: 20, borderRadius: '50%', flexShrink: 0, marginTop: 2,
+              background: k.weight === 'high' ? 'var(--green-dim)' : 'var(--bg3)',
               border: `1px solid ${k.weight === 'high' ? 'rgba(45,191,138,.3)' : 'var(--border)'}`,
-              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: 10, color: k.weight === 'high' ? 'var(--green)' : 'var(--text3)', fontWeight: 700,
             }}>
               {i + 1}
@@ -103,7 +134,7 @@ export default function DiagnosticPanel() {
             Модель 1.0 · сейчас
           </div>
           <div style={{ fontSize: 13, color: 'var(--text2)', lineHeight: 1.65, whiteSpace: 'pre-line' }}>
-            {d.model1Summary || 'Введите параметры для анализа'}
+            {d.model1Summary || 'Заполните параметры на шаге 3'}
           </div>
         </Card>
         <Card>
@@ -116,7 +147,7 @@ export default function DiagnosticPanel() {
         </Card>
       </div>
 
-      {/* Рычаги роста */}
+      {/* Рычаги */}
       <Card style={{ marginBottom: 14 }}>
         <div style={{ fontSize: 10, letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--text3)', marginBottom: 10 }}>
           Рычаги роста
@@ -128,7 +159,7 @@ export default function DiagnosticPanel() {
         )}
         {niche.levers.map((l, i) => (
           <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-            <div style={{ width: 5, height: 5, borderRadius: '50%', background: l.flag === 'real' ? 'var(--green)' : l.flag === 'hard' ? 'var(--amber)' : 'var(--red)', flexShrink: 0 }} />
+            <div style={{ width: 5, height: 5, borderRadius: '50%', flexShrink: 0, background: l.flag === 'real' ? 'var(--green)' : l.flag === 'hard' ? 'var(--amber)' : 'var(--red)' }} />
             <span style={{ fontSize: 13, color: 'var(--text2)', flex: 1 }}>{l.action}</span>
             <span style={{ fontSize: 11, color: 'var(--text3)' }}>{l.months} мес</span>
             <FlagBadge flag={l.flag} />
@@ -136,7 +167,7 @@ export default function DiagnosticPanel() {
         ))}
       </Card>
 
-      {/* Что реально двигает прибыль */}
+      {/* WRDP */}
       {(niche.wrdp?.mechanism || d.wrdpInsight) && (
         <Card style={{ marginBottom: 24, borderColor: 'rgba(139,124,246,.25)' }}>
           <div style={{ fontSize: 10, letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--purple)', marginBottom: 8 }}>
@@ -156,12 +187,6 @@ export default function DiagnosticPanel() {
       <div style={{ display: 'flex', gap: 10 }}>
         <BtnSecondary onClick={prevStep}>← Назад</BtnSecondary>
         <BtnPrimary onClick={nextStep}>Далее — финансовый прогноз →</BtnPrimary>
-        <button
-          onClick={runDiagnostic}
-          style={{ background: 'none', border: '1px solid var(--border)', color: 'var(--text3)', fontSize: 12, padding: '10px 14px', borderRadius: 8 }}
-        >
-          Обновить
-        </button>
       </div>
     </div>
   )
