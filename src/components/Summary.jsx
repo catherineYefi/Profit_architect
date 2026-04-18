@@ -28,15 +28,25 @@ const LEVEL_COLORS_ASSESS = {
 }
 
 // keyframes теперь в index.css — здесь только компонент
-function BlackBox({ nicheId, params, targetRevenue, targetMargin, targetProfit, niche }) {
+function BlackBox({ nicheId, params, targetRevenue, targetMargin, targetProfit, niche, dividendClient, dividendFund }) {
   const nicheMetrics = BLACKBOX_METRICS[nicheId]
-  const revenue    = getRevenueFromParams(params, nicheId)
-  const margin     = getMarginFromParams(params, nicheId)
-  const fixedCosts = getFixedCosts(params, nicheId)
-  const profit1    = Math.max(0, revenue * margin / 100 - fixedCosts)
-  const tMargin    = targetMargin || NICHE_TARGET_MARGINS[nicheId] || 30
-  const tRevenue   = targetRevenue || (revenue * 1.4)
-  const tProfit    = targetProfit  || Math.max(0, tRevenue * tMargin / 100 - fixedCosts * 1.1)
+  const revenue      = getRevenueFromParams(params, nicheId)
+  const margin       = getMarginFromParams(params, nicheId)
+  const fixedCosts   = getFixedCosts(params, nicheId)
+  const profit1      = Math.max(0, revenue * margin / 100 - fixedCosts)
+  const rent1        = revenue > 0 && profit1 > 0 ? parseFloat((profit1 / revenue * 100).toFixed(1)) : 0
+  const grossMargin1 = Math.round(revenue * margin / 100)
+  const tMargin      = targetMargin || NICHE_TARGET_MARGINS[nicheId] || 30
+  const tRevenue     = targetRevenue || (revenue * 1.4)
+  const tProfit      = targetProfit  || Math.max(0, tRevenue * tMargin / 100 - fixedCosts * 1.1)
+  const tRent        = tRevenue > 0 && tProfit > 0 ? parseFloat((tProfit / tRevenue * 100).toFixed(1)) : tMargin
+  const grossMarginT = Math.round(tRevenue * tMargin / 100)
+  const dClient = dividendClient || 30
+  const dFund   = dividendFund   || 10
+  const div1Client = Math.round(profit1 * dClient / 100)
+  const div1Fund   = Math.round(profit1 * dFund   / 100)
+  const divTClient = Math.round(tProfit * dClient / 100)
+  const divTFund   = Math.round(tProfit * dFund   / 100)
 
   const ArrowRow = ({ color, delay }) => (
     <div style={{ height:2, background:'var(--border)', borderRadius:1, overflow:'hidden', position:'relative' }}>
@@ -48,28 +58,39 @@ function BlackBox({ nicheId, params, targetRevenue, targetMargin, targetProfit, 
     <div style={{ marginBottom:28 }}>
       <div style={{ display:'grid', gridTemplateColumns:'1fr 144px 1fr', alignItems:'center' }}>
 
-        {/* LEFT */}
+        {/* LEFT — 5 фундаментальных метрик */}
         <div>
           <div style={{ fontSize:10, letterSpacing:'.14em', textTransform:'uppercase', color:'var(--text3)', marginBottom:8 }}>Модель 1.0 · сейчас</div>
           <div style={{ display:'flex', flexDirection:'column', gap:5 }}>
-            {nicheMetrics?.kpis.map((kpi,i) => {
-              const val = getKpiValue(kpi, params)
-              const level = assessKpi(kpi, val)
-              const c = LEVEL_COLORS_ASSESS[level]
-              return (
-                <div key={i} style={{ background:c.bg, border:`1px solid ${c.border}`, borderRadius:7, padding:'7px 11px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-                  <span style={{ fontSize:10, color:'var(--text3)' }}>{kpi.label}</span>
-                  <span style={{ fontSize:12, fontWeight:600, color:c.text }}>{formatKpiValue(kpi,val)}</span>
-                </div>
-              )
-            })}
-            <div style={{ height:1, background:'var(--border)', margin:'3px 0' }}/>
-            {[{ label:'Выручка / мес', val:revenue?formatMoney(revenue)+' ₽':'—' },{ label:'Прибыль / мес', val:profit1?formatMoney(profit1)+' ₽':'—' }].map((m,i)=>(
-              <div key={i} style={{ background:'var(--bg3)', border:'1px solid var(--border)', borderRadius:7, padding:'7px 11px', display:'flex', justifyContent:'space-between', opacity:.55 }}>
+            {[
+              { label:'Выручка / мес',       val: revenue     ? formatMoney(revenue)     +' ₽' : '—', color:'var(--text2)' },
+              { label:'Маржа / мес',          val: grossMargin1? formatMoney(grossMargin1)+' ₽' : '—', color:'var(--text2)' },
+              { label:'Маржинальность',       val: margin      ? margin+'%'               : '—', color: margin>=20?'var(--amber)':'var(--red)' },
+              { label:'Прибыль / мес',        val: profit1     ? formatMoney(profit1)    +' ₽' : '—', color: profit1>0?'var(--text2)':'var(--red)' },
+              { label:'Рентабельность',       val: rent1       ? rent1+'%'               : '—', color: rent1>=15?'var(--amber)':'var(--red)' },
+            ].map((m,i) => (
+              <div key={i} style={{ background:'var(--bg3)', border:'1px solid var(--border)', borderRadius:7, padding:'7px 11px', display:'flex', justifyContent:'space-between', alignItems:'center', opacity:.6 }}>
                 <span style={{ fontSize:10, color:'var(--text3)' }}>{m.label}</span>
-                <span style={{ fontSize:12, fontWeight:600, color:'var(--text2)' }}>{m.val}</span>
+                <span style={{ fontSize:12, fontWeight:600, color:m.color }}>{m.val}</span>
               </div>
             ))}
+            {/* КФУ-метрики ниши */}
+            {nicheMetrics?.kpis.length > 0 && (
+              <>
+                <div style={{ height:1, background:'var(--border)', margin:'2px 0' }}/>
+                {nicheMetrics.kpis.map((kpi,i) => {
+                  const val = getKpiValue(kpi, params)
+                  const level = assessKpi(kpi, val)
+                  const c = LEVEL_COLORS_ASSESS[level]
+                  return (
+                    <div key={i} style={{ background:c.bg, border:`1px solid ${c.border}`, borderRadius:7, padding:'6px 11px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                      <span style={{ fontSize:10, color:'var(--text3)' }}>{kpi.label}</span>
+                      <span style={{ fontSize:11, fontWeight:600, color:c.text }}>{formatKpiValue(kpi,val)}</span>
+                    </div>
+                  )
+                })}
+              </>
+            )}
           </div>
         </div>
 
@@ -94,23 +115,16 @@ function BlackBox({ nicheId, params, targetRevenue, targetMargin, targetProfit, 
           </div>
         </div>
 
-        {/* RIGHT */}
+        {/* RIGHT — 5 фундаментальных метрик цель */}
         <div>
           <div style={{ fontSize:10, letterSpacing:'.14em', textTransform:'uppercase', color:'var(--green)', marginBottom:8 }}>Модель 2.0 · цель с Фондом</div>
           <div style={{ display:'flex', flexDirection:'column', gap:5 }}>
-            {nicheMetrics?.kpis.map((kpi,i)=>(
-              <div key={i} style={{ background:'rgba(45,191,138,.06)', border:'1px solid rgba(45,191,138,.2)', borderRadius:7, padding:'7px 11px' }}>
-                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:kpi.hint?2:0 }}>
-                  <span style={{ fontSize:10, color:'var(--text2)' }}>{kpi.label}</span>
-                  <span style={{ fontSize:12, fontWeight:600, color:'var(--green)' }}>{kpi.targetLabel}</span>
-                </div>
-                {kpi.hint&&<div style={{ fontSize:9, color:'var(--text3)', lineHeight:1.4 }}>{kpi.hint}</div>}
-              </div>
-            ))}
-            <div style={{ height:1, background:'var(--border)', margin:'3px 0' }}/>
             {[
-              { label:'Выручка / мес', val:formatMoney(Math.round(tRevenue))+' ₽', delta:revenue?`+${Math.round((tRevenue/revenue-1)*100)}%`:null },
-              { label:'Прибыль / мес', val:formatMoney(Math.round(tProfit))+' ₽',  delta:profit1&&tProfit>profit1?`×${(tProfit/Math.max(profit1,1)).toFixed(1)}`:null },
+              { label:'Выручка / мес',  val:formatMoney(Math.round(tRevenue))+' ₽', delta:revenue?`+${Math.round((tRevenue/revenue-1)*100)}%`:null },
+              { label:'Маржа / мес',    val:formatMoney(grossMarginT)+' ₽',          delta:grossMargin1?`+${Math.round((grossMarginT/Math.max(grossMargin1,1)-1)*100)}%`:null },
+              { label:'Маржинальность', val:tMargin+'%',                              delta:margin?`+${(tMargin-margin).toFixed(0)} п.п.`:null },
+              { label:'Прибыль / мес',  val:formatMoney(Math.round(tProfit))+' ₽',  delta:profit1&&tProfit>profit1?`×${(tProfit/Math.max(profit1,1)).toFixed(1)}`:null },
+              { label:'Рентабельность', val:tRent+'%',                                delta:rent1?`+${(tRent-rent1).toFixed(1)} п.п.`:null },
             ].map((m,i)=>(
               <div key={i} style={{ background:'rgba(45,191,138,.06)', border:'1px solid rgba(45,191,138,.2)', borderRadius:7, padding:'7px 11px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
                 <span style={{ fontSize:10, color:'var(--text2)' }}>{m.label}</span>
@@ -120,6 +134,21 @@ function BlackBox({ nicheId, params, targetRevenue, targetMargin, targetProfit, 
                 </div>
               </div>
             ))}
+            {/* КФУ-цели ниши */}
+            {nicheMetrics?.kpis.length > 0 && (
+              <>
+                <div style={{ height:1, background:'var(--border)', margin:'2px 0' }}/>
+                {nicheMetrics.kpis.map((kpi,i)=>(
+                  <div key={i} style={{ background:'rgba(45,191,138,.04)', border:'1px solid rgba(45,191,138,.15)', borderRadius:7, padding:'6px 11px' }}>
+                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:kpi.hint?2:0 }}>
+                      <span style={{ fontSize:10, color:'var(--text2)' }}>{kpi.label}</span>
+                      <span style={{ fontSize:11, fontWeight:600, color:'var(--green)' }}>{kpi.targetLabel}</span>
+                    </div>
+                    {kpi.hint&&<div style={{ fontSize:9, color:'var(--text3)', lineHeight:1.4 }}>{kpi.hint}</div>}
+                  </div>
+                ))}
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -180,7 +209,7 @@ export default function Summary() {
       </p>
 
       {/* BLACK BOX */}
-      <BlackBox nicheId={nicheId} params={state.params} targetRevenue={state.targetRevenue} targetMargin={state.targetMargin} targetProfit={state.targetProfit} niche={niche}/>
+      <BlackBox nicheId={nicheId} params={state.params} targetRevenue={state.targetRevenue} targetMargin={state.targetMargin} targetProfit={state.targetProfit} niche={niche} dividendClient={state.dividendClient} dividendFund={state.dividendFund}/>
 
       {/* 01 */}
       <div style={{ fontSize:10, letterSpacing:'.15em', textTransform:'uppercase', color:'var(--green)', marginBottom:10 }}>01 · Компания и тип бизнеса</div>
@@ -241,24 +270,51 @@ export default function Summary() {
 
       {/* 05 */}
       <div style={{ fontSize:10, letterSpacing:'.15em', textTransform:'uppercase', color:'var(--green)', marginBottom:10 }}>05 · Финансовая модель 1.0 → 2.0</div>
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:10 }}>
-        <Card><div style={{ fontSize:10, letterSpacing:'.1em', textTransform:'uppercase', color:'var(--text3)', marginBottom:8 }}>Модель 1.0 · сейчас</div><div style={{ fontSize:13, color:'var(--text2)', lineHeight:1.65, whiteSpace:'pre-line' }}>{d?.model1Summary||'Введите параметры на шаге 3'}</div></Card>
-        <Card><div style={{ fontSize:10, letterSpacing:'.1em', textTransform:'uppercase', color:'var(--green)', marginBottom:8 }}>Модель 2.0 · цель</div><div style={{ fontSize:13, color:'var(--text)', lineHeight:1.65, whiteSpace:'pre-line' }}>{d?.model2Summary||niche.benchmarks.slice(0,3).map(b=>`${b.metric}: ${b.strong}`).join('\n')}</div></Card>
-      </div>
+      <Card style={{ marginBottom:10 }}>
+        {/* Заголовок таблицы */}
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 90px 90px', gap:8, fontSize:10, letterSpacing:'.08em', textTransform:'uppercase', color:'var(--text3)', paddingBottom:8, marginBottom:4, borderBottom:'1px solid var(--border)' }}>
+          <div>Показатель</div>
+          <div style={{ textAlign:'right' }}>Сейчас</div>
+          <div style={{ textAlign:'right', color:'var(--green)' }}>Цель 2.0</div>
+        </div>
+        {(() => {
+          const rev1   = getRevenueFromParams(state.params, nicheId)
+          const m1     = getMarginFromParams(state.params, nicheId)
+          const fc1    = getFixedCosts(state.params, nicheId)
+          const pr1    = Math.max(0, rev1 * m1 / 100 - fc1)
+          const re1    = rev1 > 0 && pr1 > 0 ? parseFloat((pr1/rev1*100).toFixed(1)) : 0
+          const gm1    = Math.round(rev1 * m1 / 100)
+          const tM     = state.targetMargin  || NICHE_TARGET_MARGINS[nicheId] || 30
+          const tR     = state.targetRevenue || rev1 * 1.4
+          const tP     = state.targetProfit  || Math.max(0, tR * tM / 100 - fc1 * 1.1)
+          const tRe    = tR > 0 && tP > 0 ? parseFloat((tP/tR*100).toFixed(1)) : tM
+          const tGm    = Math.round(tR * tM / 100)
+          const dC     = state.dividendClient || 30
+          const dF     = state.dividendFund   || 10
+          const rows = [
+            { label:'Выручка / мес',    v1:formatMoney(rev1)+' ₽',  v2:formatMoney(Math.round(tR))+' ₽',  bold:false },
+            { label:'Маржа / мес',      v1:formatMoney(gm1)+' ₽',   v2:formatMoney(tGm)+' ₽',              bold:false },
+            { label:'Маржинальность',   v1:m1+'%',                   v2:tM+'%',                             bold:false },
+            { label:'Прибыль / мес',    v1:formatMoney(pr1)+' ₽',   v2:formatMoney(Math.round(tP))+' ₽',  bold:true  },
+            { label:'Рентабельность',   v1:re1+'%',                  v2:tRe+'%',                            bold:false },
+            { label:'', v1:'', v2:'', divider:true },
+            { label:`Дивиденды клиенту (${dC}%)`, v1:formatMoney(Math.round(pr1*dC/100))+' ₽', v2:formatMoney(Math.round(tP*dC/100))+' ₽', color:'var(--amber)' },
+            { label:`Дивиденды фонду (${dF}%)`,   v1:formatMoney(Math.round(pr1*dF/100))+' ₽', v2:formatMoney(Math.round(tP*dF/100))+' ₽', color:'var(--purple)' },
+          ]
+          return rows.map((r,i) => r.divider
+            ? <div key={i} style={{ height:1, background:'var(--border)', margin:'6px 0' }}/>
+            : (
+              <div key={i} style={{ display:'grid', gridTemplateColumns:'1fr 90px 90px', gap:8, padding:'5px 0', borderBottom:i<rows.length-1&&!rows[i+1]?.divider?'1px solid var(--border)':'none', fontWeight:r.bold?600:400 }}>
+                <div style={{ fontSize:12, color:r.color||'var(--text2)' }}>{r.label}</div>
+                <div style={{ textAlign:'right', fontSize:12, color:'var(--text2)' }}>{r.v1}</div>
+                <div style={{ textAlign:'right', fontSize:12, color:r.color||'var(--green)' }}>{r.v2}</div>
+              </div>
+            )
+          )
+        })()}
+      </Card>
       <Card style={{ marginBottom:10 }}><div style={{ fontSize:10, letterSpacing:'.1em', textTransform:'uppercase', color:'var(--text3)', marginBottom:8 }}>Переход 1.0 → 2.0</div><p style={{ fontSize:13, color:'var(--text2)', lineHeight:1.7 }}>{niche.model1to2}</p></Card>
 
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:8, marginBottom:20 }}>
-        {[
-          { label:'Прибыль / мес (цель)', value:formatMoney(state.targetProfit||0), color:'var(--green)' },
-          { label:`Дивиденды клиент ${state.dividendClient||30}%`, value:formatMoney((state.targetProfit||0)*(state.dividendClient||30)/100), color:'var(--amber)' },
-          { label:`Дивиденды фонд ${state.dividendFund||10}%`, value:formatMoney((state.targetProfit||0)*(state.dividendFund||10)/100), color:'var(--purple)' },
-        ].map((m,i)=>(
-          <div key={i} style={{ background:'var(--bg3)', border:'1px solid var(--border)', borderRadius:8, padding:'12px', textAlign:'center' }}>
-            <div style={{ fontSize:18, fontWeight:700, color:m.color, fontFamily:'Syne' }}>{m.value}</div>
-            <div style={{ fontSize:10, color:'var(--text3)', marginTop:4 }}>{m.label}</div>
-          </div>
-        ))}
-      </div>
 
       {/* 06 */}
       <div style={{ fontSize:10, letterSpacing:'.15em', textTransform:'uppercase', color:'var(--green)', marginBottom:10 }}>06 · Рычаги роста</div>

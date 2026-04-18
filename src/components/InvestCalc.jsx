@@ -86,16 +86,16 @@ export default function InvestCalc() {
 
       <Card style={{ marginBottom:20 }}>
         <Slider
-          label="Дополнительные инвестиции"
+          label="Дополнительные инвестиции от Фонда"
           value={extraInvest/1_000_000}
           min={0} max={20} step={0.5}
           onChange={v => set({ extraInvestment: v*1_000_000 })}
           valueSuffix=" млн ₽"
           color="var(--green)"
         />
-        {extraInvest > 0 && (
-          <div style={{ fontSize:11, color:'var(--text3)', marginTop:6 }}>{investHint}</div>
-        )}
+        <div style={{ fontSize:11, color:'var(--text3)', marginTop:8, lineHeight:1.5 }}>
+          Разовая инвестиция в модель 2.0 — направляется в развитие бизнеса при достижении целевых показателей.{extraInvest > 0 && <> {investHint}.</>}
+        </div>
       </Card>
 
       {state.diagnostic?.realisticGrowth && (
