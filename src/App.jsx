@@ -28,12 +28,6 @@ export default function App() {
   const current = state.currentStep
   const isWelcome = current === 0
 
-  const goToStep = (step) => {
-    if (step <= current || step === 7) {
-      set({ currentStep: step })
-    }
-  }
-
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', flexDirection: 'column' }}>
 
