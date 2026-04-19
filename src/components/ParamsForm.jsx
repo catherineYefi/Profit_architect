@@ -101,7 +101,7 @@ export default function ParamsForm() {
 
           return (
             <div key={p.key}>
-              <label style={{ display:'block', fontSize:11, color:'var(--text2)', marginBottom:5, fontWeight:500, display:'flex', alignItems:'center', gap:5 }}>
+              <label style={{ display:'flex', alignItems:'center', gap:5, fontSize:11, color:'var(--text2)', marginBottom:5, fontWeight:500 }}>
                 {p.name}
                 <span style={{ color:'var(--text3)', fontWeight:400 }}>({p.unit})</span>
                 {/* КФУ-бейдж */}

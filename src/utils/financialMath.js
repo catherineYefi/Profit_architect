@@ -95,7 +95,18 @@ export function getRevenueFromParams(params, nicheId) {
     default: return 0
   }
 }
-
+// ─── 5 ФУНДАМЕНТАЛЬНЫХ МЕТРИК ────────────────────────────────
+export function getFundamentals(params, nicheId) {
+  const revenue    = getRevenueFromParams(params, nicheId)
+  const marginPct  = getMarginFromParams(params, nicheId)
+  const fixedCosts = getFixedCosts(params, nicheId)
+  const marginAbs  = revenue > 0 ? Math.round(revenue * marginPct / 100) : 0
+  const profit     = Math.max(0, marginAbs - fixedCosts)
+  const rentPct    = revenue > 0 && profit > 0
+    ? parseFloat((profit / revenue * 100).toFixed(1))
+    : 0
+  return { revenue, marginPct, marginAbs, profit, rentPct, fixedCosts }
+}
 // ─── ПРОГНОЗ РОСТА НА 12 МЕС ─────────────────────────────────
 export function buildGrowthProjection(monthlyProfit, dividendPct, extraInvestment, marginPct) {
   if (!monthlyProfit || monthlyProfit <= 0) {

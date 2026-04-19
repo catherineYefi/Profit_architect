@@ -84,7 +84,7 @@ export default function DiagnosticPanel() {
         <div style={{ fontSize: 10, letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--text3)', marginBottom: 8 }}>
           Формула прибыли · {niche.name}
         </div>
-        <div style={{ fontFamily: 'Syne', fontSize: 13, color: 'var(--green)', fontWeight: 600, marginBottom: 8, fontFamily: 'monospace' }}>
+        <div style={{ fontSize: 13, color: 'var(--green)', fontWeight: 600, marginBottom: 8, fontFamily: 'monospace' }}>
           {niche.formulaShort}
         </div>
         {d.formulaInsight && (
