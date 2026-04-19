@@ -23,7 +23,7 @@ const STEPS = {
 const STEP_LABELS = ['Ниша', 'Превью', 'Параметры', 'Диагностика', 'Прогноз', 'Инвестиции', 'Итог']
 
 export default function App() {
-  const { state, set, nextStep, prevStep } = useAppStore()
+  const { state, set, nextStep, prevStep, goToStep } = useAppStore()
   const StepComponent = STEPS[state.currentStep] || Welcome
   const current = state.currentStep
   const isWelcome = current === 0

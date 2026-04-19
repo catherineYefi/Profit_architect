@@ -1,116 +1,88 @@
-// ============================================================
-// useAppStore.js — центральный стейт на Zustand
-// + localStorage для сохранения сессии
-// ============================================================
 import { create } from 'zustand'
 
-const STORAGE_KEY = 'profit_architect_session'
-
-// Что сохраняем в localStorage (не всё — диагностику не сохраняем)
+const STORAGE_KEY = 'profit_architect_v1'
 const PERSIST_KEYS = ['currentStep', 'selectedNiche', 'params', 'dividendClient', 'dividendFund']
 
-function loadFromStorage() {
+function loadSaved() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return {}
-    const parsed = JSON.parse(raw)
-    // Безопасно берём только нужные ключи
-    return PERSIST_KEYS.reduce((acc, key) => {
-      if (parsed[key] !== undefined) acc[key] = parsed[key]
-      return acc
-    }, {})
-  } catch {
-    return {}
-  }
+    return JSON.parse(raw)
+  } catch { return {} }
 }
 
-function saveToStorage(state) {
+function save(stateObj) {
   try {
-    const toSave = PERSIST_KEYS.reduce((acc, key) => {
-      if (state[key] !== undefined) acc[key] = state[key]
+    const data = PERSIST_KEYS.reduce((acc, k) => {
+      if (stateObj[k] !== undefined) acc[k] = stateObj[k]
       return acc
     }, {})
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave))
-  } catch {
-    // localStorage недоступен — просто игнорируем
-  }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+  } catch {}
 }
 
-// Начальное состояние с восстановлением из localStorage
-const savedState = loadFromStorage()
-
-const initialState = {
-  // Навигация
-  currentStep: 0,
-
-  // Шаг 1 — выбор ниши
-  selectedNiche: null,
-
-  // Шаг 3 — параметры
-  params: {},
-
-  // Шаг 4 — диагностика (не персистируется)
-  diagnostic:        null,
-  diagnosticLoading: false,
-  diagnosticError:   null,
-
-  // Шаг 5 — финансовый прогноз
-  dividendClient: 30,
-  dividendFund:   10,
-
-  // Шаг 5 → 6 — передача целевых значений
-  targetProfit:  0,
-  targetRevenue: 0,
-  targetMargin:  25,
-  targetCosts:   0,
-  reinvest:      0,
-
-  // Шаг 6 — инвестиции
+const defaults = {
+  currentStep: 0, selectedNiche: null, params: {},
+  diagnostic: null, diagnosticLoading: false, diagnosticError: null,
+  dividendClient: 30, dividendFund: 10,
+  targetProfit: 0, targetRevenue: 0, targetMargin: 25, targetCosts: 0, reinvest: 0,
   extraInvestment: 0,
 }
 
-export const useAppStore = create((set, get) => ({
-  // Мержим initialState с сохранёнными данными
-  ...initialState,
-  ...savedState,
+const saved = loadSaved()
 
-  // ─── Общий setter ───────────────────────────────────────
-  set: (updates) => {
+// Zustand-стор — внутренний
+const useZustand = create((set, get) => ({
+  ...defaults,
+  ...saved,
+  _set: (updates) => {
     set(updates)
-    // Сохраняем в localStorage после каждого изменения
-    saveToStorage({ ...get(), ...updates })
-  },
-
-  // ─── Навигация ──────────────────────────────────────────
-  nextStep: () => {
-    const current = get().currentStep
-    if (current < 7) {
-      const next = current + 1
-      set({ currentStep: next })
-      saveToStorage({ ...get(), currentStep: next })
-    }
-  },
-
-  prevStep: () => {
-    const current = get().currentStep
-    if (current > 0) {
-      const prev = current - 1
-      set({ currentStep: prev })
-      saveToStorage({ ...get(), currentStep: prev })
-    }
-  },
-
-  goToStep: (step) => {
-    const current = get().currentStep
-    if (step <= current || step === 7) {
-      set({ currentStep: step })
-      saveToStorage({ ...get(), currentStep: step })
-    }
-  },
-
-  // ─── Сброс сессии ───────────────────────────────────────
-  reset: () => {
-    try { localStorage.removeItem(STORAGE_KEY) } catch {}
-    set({ ...initialState })
+    save({ ...get(), ...updates })
   },
 }))
+
+// Хук с совместимым API (state, set, nextStep, prevStep, goToStep, reset)
+export function useAppStore() {
+  const store = useZustand()
+
+  // state — вложенный объект как раньше (все компоненты используют state.X)
+  const state = {
+    currentStep:       store.currentStep,
+    selectedNiche:     store.selectedNiche,
+    params:            store.params,
+    diagnostic:        store.diagnostic,
+    diagnosticLoading: store.diagnosticLoading,
+    diagnosticError:   store.diagnosticError,
+    dividendClient:    store.dividendClient,
+    dividendFund:      store.dividendFund,
+    targetProfit:      store.targetProfit,
+    targetRevenue:     store.targetRevenue,
+    targetMargin:      store.targetMargin,
+    targetCosts:       store.targetCosts,
+    reinvest:          store.reinvest,
+    extraInvestment:   store.extraInvestment,
+  }
+
+  return {
+    state,
+
+    set: (updates) => store._set(updates),
+
+    nextStep: () => {
+      if (store.currentStep < 7) store._set({ currentStep: store.currentStep + 1 })
+    },
+
+    prevStep: () => {
+      if (store.currentStep > 0) store._set({ currentStep: store.currentStep - 1 })
+    },
+
+    goToStep: (step) => {
+      if (step <= store.currentStep || step === 7) store._set({ currentStep: step })
+    },
+
+    reset: () => {
+      try { localStorage.removeItem(STORAGE_KEY) } catch {}
+      store._set({ ...defaults })
+    },
+  }
+}
