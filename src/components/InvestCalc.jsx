@@ -110,7 +110,7 @@ export default function InvestCalc() {
         <Slider
           label=""
           value={extraInvest/1_000_000}
-          min={0} max={20} step={0.5}
+          min={0} max={100} step={5}
           onChange={v => set({ extraInvestment: v*1_000_000 })}
           valueSuffix=" млн ₽"
           color="var(--green)"
@@ -129,8 +129,8 @@ export default function InvestCalc() {
 
         {/* Шкала */}
         <div style={{ display:'flex', justifyContent:'space-between', fontSize:10, color:'var(--text3)', marginTop:6 }}>
-          <span>0 — без инвестиций</span>
-          <span>20 млн — максимум</span>
+          <span>0 ₽</span>
+          <span>до 100 млн ₽ разовых внешних вложений</span>
         </div>
       </Card>
 

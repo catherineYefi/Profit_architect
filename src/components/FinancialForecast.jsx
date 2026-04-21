@@ -37,17 +37,16 @@ export default function FinancialForecast() {
   const targetProfit  = Math.max(0, targetRevenue * targetMargin / 100)
   const targetRent    = targetMargin
 
-  // ── Реинвест и дивиденды (новая логика Жени) ──
+  // ── Реинвест и дивиденды (логика Жени) ──
   // Шаг 1: % от прибыли идёт в развитие (0–25%)
-  // Шаг 2: из остатка делятся дивиденды клиенту и фонду
-  const reinvestPct    = state.reinvestPct    ?? 0
-  const dividendClient = state.dividendClient ?? 30
-  const dividendFund   = state.dividendFund   ?? 10
+  // Шаг 2: фонд берёт 10–25% из остатка, клиент получает всё остальное автоматически
+  const reinvestPct    = state.reinvestPct ?? 0
+  const dividendFund   = state.dividendFund ?? 10
+  const dividendClient = 100 - dividendFund            // клиент = всё что не фонд
   const reinvestAmount = Math.round(targetProfit * reinvestPct / 100)
   const remainingDiv   = targetProfit - reinvestAmount
-  const clientDiv      = Math.round(remainingDiv * dividendClient / 100)
   const fundDiv        = Math.round(remainingDiv * dividendFund / 100)
-  const undistributed  = Math.max(0, remainingDiv - clientDiv - fundDiv)
+  const clientDiv      = remainingDiv - fundDiv         // клиент получает остаток точно
 
   // ── P&L строки ──
   const revGap    = currentRevenue > 0 ? formatMoney(targetRevenue - currentRevenue) : '—'
@@ -105,7 +104,7 @@ export default function FinancialForecast() {
       color:   'var(--blue)',
     },
     {
-      label:   `Дивиденды клиент`,
+      label:   `Дивиденды клиент (${dividendClient}%)`,
       current: formatMoney(Math.round(currentProfit * dividendClient / 100)),
       target:  formatMoney(clientDiv),
       gapAbs:  '',
@@ -113,7 +112,7 @@ export default function FinancialForecast() {
       color:   'var(--amber)',
     },
     {
-      label:   `Дивиденды фонд`,
+      label:   `Дивиденды фонд (${dividendFund}%)`,
       current: formatMoney(Math.round(currentProfit * dividendFund / 100)),
       target:  formatMoney(fundDiv),
       gapAbs:  '',
@@ -194,25 +193,42 @@ export default function FinancialForecast() {
           </div>
         </div>
 
-        {/* Рычаг 2 и 3: Дивиденды из остатка */}
+        {/* Дивиденды: рычаг Фонда, клиент получает остаток автоматически */}
         <div style={{
           paddingTop:12, borderTop:'1px solid var(--border)',
-          marginBottom:8, fontSize:11, color:'var(--text3)',
+          marginBottom:12, fontSize:11, color:'var(--text3)',
         }}>
-          Из {formatMoney(remainingDiv)} ₽ остатка распределяем:
+          Из {formatMoney(remainingDiv)} ₽ остатка:
         </div>
+
+        {/* Слайдер фонда */}
         <Slider
-          label="Дивиденды клиенту"
-          value={dividendClient} min={0} max={80} step={5}
-          onChange={v => set({ dividendClient: v })}
-          color="var(--amber)"
-        />
-        <Slider
-          label="Дивиденды фонду"
+          label={`Дивиденды фонду · ${dividendFund}%`}
           value={dividendFund} min={10} max={25} step={5}
           onChange={v => set({ dividendFund: v })}
           color="var(--purple)"
         />
+
+        {/* Клиент — автоматически всё что остаётся после фонда */}
+        <div style={{
+          marginTop:10, marginBottom:4,
+          display:'flex', justifyContent:'space-between', alignItems:'center',
+          padding:'10px 12px',
+          background:'rgba(245,158,42,.06)', border:'1px solid rgba(245,158,42,.15)',
+          borderRadius:8,
+        }}>
+          <div>
+            <div style={{ fontSize:12, fontWeight:500, color:'var(--text2)' }}>
+              Дивиденды клиенту · {dividendClient}%
+            </div>
+            <div style={{ fontSize:10, color:'var(--text3)', marginTop:2 }}>
+              Автоматически — всё, что остаётся после доли фонда
+            </div>
+          </div>
+          <div style={{ fontSize:14, fontWeight:700, color:'var(--amber)', fontFamily:'Syne' }}>
+            {formatMoney(clientDiv)} ₽
+          </div>
+        </div>
 
         {/* Итоговая разбивка */}
         <div style={{
@@ -220,10 +236,9 @@ export default function FinancialForecast() {
           display:'flex', flexDirection:'column', gap:5,
         }}>
           {[
-            { label:`Инвест в рост (${reinvestPct}%)`,    val: reinvestAmount, color:'var(--blue)'   },
-            { label:`Клиент (${dividendClient}%)`,         val: clientDiv,      color:'var(--amber)'  },
-            { label:`Фонд (${dividendFund}%)`,             val: fundDiv,        color:'var(--purple)' },
-            { label:'Нераспределено',                      val: undistributed,  color:'var(--text3)'  },
+            { label:`Инвест в рост (${reinvestPct}%)`, val: reinvestAmount, color:'var(--blue)'   },
+            { label:`Клиент (${dividendClient}%)`,      val: clientDiv,      color:'var(--amber)'  },
+            { label:`Фонд (${dividendFund}%)`,          val: fundDiv,        color:'var(--purple)' },
           ].filter(item => item.val > 0).map((item, i) => (
             <div key={i} style={{ display:'flex', justifyContent:'space-between', fontSize:11 }}>
               <span style={{ color:'var(--text3)' }}>{item.label}</span>
@@ -250,7 +265,7 @@ export default function FinancialForecast() {
       <div style={{ display:'flex', gap:10 }}>
         <BtnSecondary onClick={prevStep}>← Назад</BtnSecondary>
         <BtnPrimary onClick={() => {
-          set({ targetProfit, targetRevenue, targetMargin, targetCosts })
+          set({ targetProfit, targetRevenue, targetMargin, targetCosts, dividendClient })
           nextStep()
         }}>
           Далее — инвестиционный калькулятор →
