@@ -245,7 +245,7 @@ export default function Summary() {
   const d = state.diagnostic
   const chartData = buildGrowthProjection(
     state.targetProfit || 500000,
-    Math.min((state.dividendClient||30)+(state.dividendFund||10), 95),
+    state.reinvestPct ?? 0,
     state.extraInvestment || 0,
     state.targetMargin || NICHE_TARGET_MARGINS[nicheId] || 30
   )

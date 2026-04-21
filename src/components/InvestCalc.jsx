@@ -35,12 +35,12 @@ export default function InvestCalc() {
 
   const targetProfit  = state.targetProfit  || 500_000
   const targetMargin  = state.targetMargin  || 25
-  const dividendTotal = Math.min((state.dividendClient || 30) + (state.dividendFund || 10), 95)
+  const reinvestPct   = state.reinvestPct ?? 0
   const extraInvest   = state.extraInvestment || 0
 
   const chartData = useMemo(
-    () => buildGrowthProjection(targetProfit, dividendTotal, extraInvest, targetMargin),
-    [targetProfit, dividendTotal, extraInvest, targetMargin]
+    () => buildGrowthProjection(targetProfit, reinvestPct, extraInvest, targetMargin),
+    [targetProfit, reinvestPct, extraInvest, targetMargin]
   )
 
   const totalBase   = chartData.reduce((s,p) => s+(p.baseProfit||0), 0)

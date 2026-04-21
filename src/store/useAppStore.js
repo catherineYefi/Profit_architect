@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 
 const STORAGE_KEY = 'profit_architect_v1'
-const PERSIST_KEYS = ['currentStep', 'selectedNiche', 'params', 'dividendClient', 'dividendFund']
+const PERSIST_KEYS = ['currentStep', 'selectedNiche', 'params', 'dividendClient', 'dividendFund', 'reinvestPct']
 
 function loadSaved() {
   try {
@@ -24,7 +24,7 @@ function save(stateObj) {
 const defaults = {
   currentStep: 0, selectedNiche: null, params: {},
   diagnostic: null, diagnosticLoading: false, diagnosticError: null,
-  dividendClient: 30, dividendFund: 10,
+  dividendClient: 30, dividendFund: 10, reinvestPct: 0,
   targetProfit: 0, targetRevenue: 0, targetMargin: 25, targetCosts: 0, reinvest: 0,
   extraInvestment: 0,
 }
@@ -55,6 +55,7 @@ export function useAppStore() {
     diagnosticError:   store.diagnosticError,
     dividendClient:    store.dividendClient,
     dividendFund:      store.dividendFund,
+    reinvestPct:       store.reinvestPct,
     targetProfit:      store.targetProfit,
     targetRevenue:     store.targetRevenue,
     targetMargin:      store.targetMargin,

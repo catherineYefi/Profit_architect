@@ -166,15 +166,14 @@ export function getFundamentals(params, nicheId) {
 }
 
 // ─── ПРОГНОЗ РОСТА 12 МЕС ────────────────────────────────────
-export function buildGrowthProjection(monthlyProfit, dividendPct, extraInvestment, marginPct) {
+export function buildGrowthProjection(monthlyProfit, reinvestPct, extraInvestment, marginPct) {
   if (!monthlyProfit || monthlyProfit <= 0) {
     return Array.from({ length: 12 }, (_, i) => ({
       month: `${i + 1} мес`, baseProfit: 0, investProfit: 0,
     }))
   }
 
-  const clampedDiv    = Math.min(Math.max(dividendPct || 0), 95)
-  const reinvestRatio = (100 - clampedDiv) / 100
+  const reinvestRatio = Math.max(0, Math.min((reinvestPct || 0) / 100, 0.95))
   const marginRatio   = Math.max(0, Math.min((marginPct || 25) / 100, 1))
 
   const result = []
