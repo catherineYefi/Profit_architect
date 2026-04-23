@@ -55,7 +55,7 @@ function FundRow({ label, val1, val2, delta, highlight }) {
 }
 
 // ─── BLACK BOX ───────────────────────────────────────────────
-function BlackBox({ nicheId, params, targetRevenue, targetMargin, targetProfit, niche, dividendClient, dividendFund }) {
+function BlackBox({ nicheId, params, targetRevenue, targetMargin, targetProfit, niche, dividendFund }) {
   const nicheMetrics = BLACKBOX_METRICS[nicheId]
 
   // Текущие 5 фундаментальных метрик
@@ -71,8 +71,8 @@ function BlackBox({ nicheId, params, targetRevenue, targetMargin, targetProfit, 
     ? parseFloat((tProfit / tRevenue * 100).toFixed(1))
     : tMargin
 
-  // Дивиденды
-  const dc = dividendClient || 30
+  // Дивиденды — клиент всегда 100% - фонд (новая логика)
+  const dc = 100 - (dividendFund || 10)
   const df = dividendFund   || 10
   const div1Client = f1.profit > 0 ? Math.round(f1.profit * dc / 100) : 0
   const div1Fund   = f1.profit > 0 ? Math.round(f1.profit * df / 100) : 0
@@ -245,7 +245,7 @@ export default function Summary() {
   const d = state.diagnostic
   const chartData = buildGrowthProjection(
     state.targetProfit || 500000,
-    state.reinvestPct ?? 0,
+    Math.min((state.dividendClient||30)+(state.dividendFund||10), 95),
     state.extraInvestment || 0,
     state.targetMargin || NICHE_TARGET_MARGINS[nicheId] || 30
   )
@@ -292,12 +292,66 @@ export default function Summary() {
         targetMargin={state.targetMargin}
         targetProfit={state.targetProfit}
         niche={niche}
-        dividendClient={state.dividendClient}
         dividendFund={state.dividendFund}
       />
 
+      {/* Якорная навигация */}
+      <div style={{
+        display:'flex', gap:6, flexWrap:'wrap', marginBottom:24, marginTop:4,
+      }}>
+        {[
+          { id:'s01', label:'01 Бизнес' },
+          { id:'s02', label:'02 Формулы' },
+          { id:'s03', label:'03 КФУ' },
+          { id:'s04', label:'04 Бенчмарки' },
+          { id:'s05', label:'05 Финансы' },
+          { id:'s06', label:'06 Рычаги' },
+          { id:'s07', label:'07 Стримы' },
+          { id:'s08', label:'08 График' },
+        ].map(a => (
+          <button
+            key={a.id}
+            onClick={() => document.getElementById(a.id)?.scrollIntoView({ behavior:'smooth', block:'start' })}
+            style={{
+              background:'var(--bg3)', border:'1px solid var(--border)', borderRadius:6,
+              padding:'4px 10px', fontSize:10, color:'var(--text2)', cursor:'pointer',
+              fontFamily:'Manrope', fontWeight:500, transition:'all .15s',
+            }}
+            onMouseEnter={e=>{e.currentTarget.style.borderColor='var(--green)';e.currentTarget.style.color='var(--green)'}}
+            onMouseLeave={e=>{e.currentTarget.style.borderColor='var(--border)';e.currentTarget.style.color='var(--text2)'}}
+          >
+            {a.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Блок роли Фонда */}
+      <div style={{
+        background:'rgba(45,191,138,.04)', border:'1px solid rgba(45,191,138,.2)',
+        borderRadius:10, padding:'16px 20px', marginBottom:24,
+      }}>
+        <div style={{ fontSize:10, letterSpacing:'.14em', textTransform:'uppercase', color:'var(--green)', marginBottom:10 }}>
+          Как Фонд помогает пройти путь 1.0 → 2.0
+        </div>
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:8 }}>
+          {[
+            { icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>, text:'Еженедельный трекинг метрик по методологии Дашкиева' },
+            { icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>, text:'Разбор узких мест по опыту 100+ бизнесов в вашей нише' },
+            { icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>, text:'Контроль внедрения и фокус на приоритетных рычагах роста' },
+          ].map((item, i) => (
+            <div key={i} style={{ display:'flex', alignItems:'flex-start', gap:8 }}>
+              <div style={{ color:'var(--green)', flexShrink:0, marginTop:1 }}>{item.icon}</div>
+              <div style={{ fontSize:11, color:'var(--text2)', lineHeight:1.55 }}>{item.text}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{ marginTop:10, paddingTop:10, borderTop:'1px solid rgba(45,191,138,.15)', fontSize:11, color:'var(--text3)' }}>
+          Срок перехода в модель 2.0 при системной работе: <span style={{ color:'var(--green)', fontWeight:600 }}>6–12 месяцев</span>
+        </div>
+      </div>
+
       {/* 01 */}
-      <div style={{ fontSize:10, letterSpacing:'.15em', textTransform:'uppercase', color:'var(--green)', marginBottom:10 }}>01 · Компания и тип бизнеса</div>
+      <div id="s01" style={{ fontSize:10, letterSpacing:'.15em', textTransform:'uppercase', color:'var(--green)', marginBottom:10 }}>01 · Компания и тип бизнеса</div>
       <Card accent style={{ marginBottom:20 }}>
         <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:12 }}>
           <div style={{ color:'var(--green)' }}>{NICHE_ICONS[nicheId]}</div>
@@ -313,7 +367,7 @@ export default function Summary() {
       </Card>
 
       {/* 02 */}
-      <div style={{ fontSize:10, letterSpacing:'.15em', textTransform:'uppercase', color:'var(--green)', marginBottom:10 }}>02 · Формулы прибыли — 5 уровней</div>
+      <div id="s02" style={{ fontSize:10, letterSpacing:'.15em', textTransform:'uppercase', color:'var(--green)', marginBottom:10 }}>02 · Формулы прибыли — 5 уровней</div>
       <Card style={{ marginBottom:20 }}>
         {niche.formulaLevels.map((f,i)=>(
           <div key={i} style={{ display:'flex', gap:10, marginBottom:10, paddingBottom:10, borderBottom:i<niche.formulaLevels.length-1?'1px solid var(--border)':'none' }}>

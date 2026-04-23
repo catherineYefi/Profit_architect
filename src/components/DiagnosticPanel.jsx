@@ -2,6 +2,7 @@ import React, { useEffect } from 'react'
 import { useAppStore } from '../store/useAppStore'
 import { nicheConfigs } from '../data/nicheConfigs'
 import { generateDiagnostic } from '../services/gptService'
+import { getNetProfit, getRevenueFromParams, NICHE_TARGET_MARGINS, formatMoney } from '../utils/financialMath'
 import { SectionLabel, Card, BtnPrimary, BtnSecondary, FlagBadge, LoadingSpinner } from './ui'
 
 export default function DiagnosticPanel() {
@@ -79,6 +80,47 @@ export default function DiagnosticPanel() {
         </button>
       </div>
 
+      {/* ×N блок — момент осознания */}
+      {(() => {
+        const currentProfit = getNetProfit(state.params, state.selectedNiche)
+        const currentRevenue = getRevenueFromParams(state.params, state.selectedNiche)
+        const tMargin  = NICHE_TARGET_MARGINS[state.selectedNiche] || 30
+        const tProfit  = Math.max(0, currentRevenue * 1.4 * tMargin / 100)
+        const mult     = currentProfit > 0 ? (tProfit / currentProfit).toFixed(1) : null
+        if (!currentProfit || !mult) return null
+        return (
+          <div style={{
+            display:'grid', gridTemplateColumns:'1fr auto 1fr',
+            alignItems:'center', gap:10,
+            background:'var(--bg2)', border:'1px solid rgba(45,191,138,.25)',
+            borderTop:'2px solid var(--green)',
+            borderRadius:10, padding:'16px 20px', marginBottom:14,
+          }}>
+            <div>
+              <div style={{ fontSize:9, textTransform:'uppercase', letterSpacing:'.12em', color:'var(--text3)', marginBottom:4 }}>Прибыль сейчас</div>
+              <div style={{ fontFamily:'Syne', fontSize:22, fontWeight:700, color:'var(--text2)' }}>{formatMoney(currentProfit)} ₽</div>
+              <div style={{ fontSize:10, color:'var(--text3)' }}>в месяц</div>
+            </div>
+            <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:4 }}>
+              <div style={{
+                fontFamily:'Syne', fontSize:28, fontWeight:800, color:'var(--green)',
+                lineHeight:1, padding:'8px 14px',
+                background:'rgba(45,191,138,.1)', borderRadius:8,
+                border:'1px solid rgba(45,191,138,.2)',
+              }}>
+                ×{mult}
+              </div>
+              <div style={{ fontSize:9, color:'var(--text3)', textAlign:'center', letterSpacing:'.1em', textTransform:'uppercase' }}>потенциал роста</div>
+            </div>
+            <div style={{ textAlign:'right' }}>
+              <div style={{ fontSize:9, textTransform:'uppercase', letterSpacing:'.12em', color:'var(--green)', marginBottom:4 }}>Прибыль · модель 2.0</div>
+              <div style={{ fontFamily:'Syne', fontSize:22, fontWeight:700, color:'var(--green)' }}>{formatMoney(tProfit)} ₽</div>
+              <div style={{ fontSize:10, color:'var(--text3)' }}>в месяц</div>
+            </div>
+          </div>
+        )
+      })()}
+
       {/* Формула прибыли */}
       <Card accent style={{ marginBottom: 14 }}>
         <div style={{ fontSize: 10, letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--text3)', marginBottom: 8 }}>
@@ -91,8 +133,11 @@ export default function DiagnosticPanel() {
           <div style={{ fontSize: 13, color: 'var(--text2)', lineHeight: 1.65 }}>{d.formulaInsight}</div>
         )}
         {d.mainConstraint && (
-          <div style={{ marginTop: 10, padding: '8px 12px', background: 'var(--red-dim)', border: '1px solid rgba(240,96,96,.2)', borderRadius: 6, fontSize: 12, color: 'var(--red)' }}>
-            ⚠ Главное ограничение: {d.mainConstraint}
+          <div style={{ marginTop: 10, padding: '8px 12px', background: 'var(--red-dim)', border: '1px solid rgba(240,96,96,.2)', borderRadius: 6, fontSize: 12, color: 'var(--red)', display:'flex', alignItems:'flex-start', gap:6 }}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0, marginTop:1}}>
+              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            Главное ограничение: {d.mainConstraint}
           </div>
         )}
       </Card>
@@ -177,8 +222,11 @@ export default function DiagnosticPanel() {
             {d.wrdpInsight || niche.wrdp?.mechanism}
           </div>
           {niche.wrdp?.falseDriver && (
-            <div style={{ marginTop: 10, fontSize: 12, color: 'var(--amber)' }}>
-              ✕ Ложный драйвер: {niche.wrdp.falseDriver}
+            <div style={{ marginTop: 10, fontSize: 12, color: 'var(--amber)', display:'flex', alignItems:'center', gap:5 }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" style={{flexShrink:0}}>
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+              Ложный драйвер: {niche.wrdp.falseDriver}
             </div>
           )}
         </Card>

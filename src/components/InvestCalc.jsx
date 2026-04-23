@@ -35,12 +35,12 @@ export default function InvestCalc() {
 
   const targetProfit  = state.targetProfit  || 500_000
   const targetMargin  = state.targetMargin  || 25
-  const reinvestPct   = state.reinvestPct ?? 0
+  const dividendTotal = Math.min((state.dividendClient || 30) + (state.dividendFund || 10), 95)
   const extraInvest   = state.extraInvestment || 0
 
   const chartData = useMemo(
-    () => buildGrowthProjection(targetProfit, reinvestPct, extraInvest, targetMargin),
-    [targetProfit, reinvestPct, extraInvest, targetMargin]
+    () => buildGrowthProjection(targetProfit, dividendTotal, extraInvest, targetMargin),
+    [targetProfit, dividendTotal, extraInvest, targetMargin]
   )
 
   const totalBase   = chartData.reduce((s,p) => s+(p.baseProfit||0), 0)
@@ -88,6 +88,12 @@ export default function InvestCalc() {
             ↕ Подвигайте ползунок ниже — увидите эффект инвестиций
           </div>
         )}
+        {/* Объяснение механики */}
+        <div style={{ marginTop:10, padding:'8px 12px', background:'var(--bg3)', borderRadius:6, fontSize:10, color:'var(--text3)', lineHeight:1.6 }}>
+          Базовый сценарий — рост за счёт реинвестирования {state.reinvestPct ?? 0}% прибыли в {direction.text}.
+          {extraInvest > 0 && ` Второй сценарий — плюс ${(extraInvest/1_000_000).toFixed(1)} млн ₽ разовых внешних вложений.`}
+          {' '}Маржинальность модели {state.targetMargin || 25}%. Прогноз на 12 мес при достижении модели 2.0.
+        </div>
       </Card>
 
       {/* Ползунок инвестиций с пояснением */}
@@ -110,7 +116,7 @@ export default function InvestCalc() {
         <Slider
           label=""
           value={extraInvest/1_000_000}
-          min={0} max={100} step={5}
+          min={0} max={20} step={0.5}
           onChange={v => set({ extraInvestment: v*1_000_000 })}
           valueSuffix=" млн ₽"
           color="var(--green)"
@@ -122,15 +128,19 @@ export default function InvestCalc() {
             marginTop:10, padding:'8px 12px',
             background:'rgba(45,191,138,.06)', border:'1px solid rgba(45,191,138,.15)',
             borderRadius:6, fontSize:11, color:'var(--text2)', lineHeight:1.55,
+            display:'flex', alignItems:'flex-start', gap:6,
           }}>
-            💡 {direction.hint}
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0, marginTop:1}}>
+              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+            {direction.hint}
           </div>
         )}
 
         {/* Шкала */}
         <div style={{ display:'flex', justifyContent:'space-between', fontSize:10, color:'var(--text3)', marginTop:6 }}>
-          <span>0 ₽</span>
-          <span>до 100 млн ₽ разовых внешних вложений</span>
+          <span>0 — без инвестиций</span>
+          <span>20 млн — максимум</span>
         </div>
       </Card>
 

@@ -41,7 +41,7 @@ export default function ParamsForm() {
 
   const handleNext = () => {
     if (Object.keys(errors).length > 0) return
-    set({ params: localParams })
+    set({ params: localParams, diagnostic: null })
     nextStep()
   }
 
@@ -58,14 +58,17 @@ export default function ParamsForm() {
           {niche.name} · Текущие показатели
         </h2>
         <div style={{ fontSize:12, color:'var(--text3)', marginTop:3 }}>
-          Оставьте пустым — подставится среднее по нише
+          Заполните хотя бы КФУ-поля — они отмечены зелёным
         </div>
       </div>
 
       {/* Прогресс */}
       <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:20 }}>
         <div style={{ flex:1, height:3, background:'var(--border)', borderRadius:2, overflow:'hidden' }}>
-          <div style={{ width:`${pct}%`, height:'100%', background:'var(--green)', borderRadius:2, transition:'width .3s' }}/>
+          <div style={{
+            width:`${pct}%`, height:'100%', borderRadius:2, transition:'width .3s, background .3s',
+            background: emptyKpis.length > 0 ? 'var(--amber)' : 'var(--green)',
+          }}/>
         </div>
         <span style={{ fontSize:11, color:'var(--text3)', whiteSpace:'nowrap' }}>{filled} из {total}</span>
       </div>

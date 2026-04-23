@@ -51,7 +51,7 @@ export default function App() {
             </div>
           </button>
           <div style={{ fontSize: 10, color: 'var(--text3)', paddingLeft: 4, borderLeft: '1px solid var(--border)' }}>
-            Фонд Дашкиева
+            Beta
           </div>
 
           {/* Шаги — только номер, название в title */}

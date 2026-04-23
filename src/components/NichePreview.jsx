@@ -80,6 +80,9 @@ export default function NichePreview() {
       <Card style={{ marginBottom:10 }}>
         <div style={{ fontSize:10, letterSpacing:'.12em', textTransform:'uppercase', color:'var(--text3)', marginBottom:8 }}>
           Ключевая формула · Уровень 4
+          <span style={{ fontWeight:400, letterSpacing:0, textTransform:'none', marginLeft:6, color:'var(--text3)', fontSize:9 }}>
+            — оптимальный уровень глубины для сессии
+          </span>
         </div>
         <div style={{ fontSize:12, color:'var(--purple)', fontFamily:'monospace', lineHeight:1.6, marginBottom:10 }}>
           {niche.formulaLevels?.[3]?.formula}
@@ -148,8 +151,18 @@ export default function NichePreview() {
         <p style={{ fontSize:13, color:'var(--text2)', lineHeight:1.7, marginBottom:12 }}>{niche.model1to2}</p>
         {niche.wrdp?.falseDriver && (
           <div>
-            <div style={{ fontSize:12, color:'var(--red)', marginBottom:6 }}>✕ Ложный драйвер: {niche.wrdp.falseDriver}</div>
-            <div style={{ fontSize:12, color:'var(--amber)' }}>⚠ Ошибка масштаба: {niche.wrdp.scalingMistake}</div>
+            <div style={{ fontSize:12, color:'var(--red)', marginBottom:6, display:'flex', alignItems:'center', gap:5 }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" style={{flexShrink:0}}>
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+              Ложный драйвер: {niche.wrdp.falseDriver}
+            </div>
+            <div style={{ fontSize:12, color:'var(--amber)', display:'flex', alignItems:'center', gap:5 }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}>
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+              Ошибка масштаба: {niche.wrdp.scalingMistake}
+            </div>
           </div>
         )}
       </CollapseSection>

@@ -128,6 +128,37 @@ export default function FinancialForecast() {
         Финансовый прогноз · Сравнительный P&L
       </h2>
 
+      {/* Блок потенциала роста */}
+      {currentProfit > 0 && targetProfit > currentProfit && (() => {
+        const mult = (targetProfit / currentProfit).toFixed(1)
+        return (
+          <div style={{
+            display:'grid', gridTemplateColumns:'1fr auto 1fr',
+            alignItems:'center', gap:10,
+            background:'var(--bg2)', border:'1px solid rgba(45,191,138,.25)',
+            borderTop:'2px solid var(--green)',
+            borderRadius:10, padding:'14px 20px', marginBottom:14,
+          }}>
+            <div>
+              <div style={{ fontSize:9, textTransform:'uppercase', letterSpacing:'.12em', color:'var(--text3)', marginBottom:3 }}>Прибыль сейчас</div>
+              <div style={{ fontFamily:'Syne', fontSize:20, fontWeight:700, color:'var(--text2)' }}>{formatMoney(currentProfit)} ₽</div>
+              <div style={{ fontSize:10, color:'var(--text3)' }}>в месяц</div>
+            </div>
+            <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:3 }}>
+              <div style={{ fontFamily:'Syne', fontSize:26, fontWeight:800, color:'var(--green)', lineHeight:1, padding:'8px 14px', background:'rgba(45,191,138,.1)', borderRadius:8, border:'1px solid rgba(45,191,138,.2)' }}>
+                ×{mult}
+              </div>
+              <div style={{ fontSize:9, color:'var(--text3)', textAlign:'center', letterSpacing:'.1em', textTransform:'uppercase' }}>потенциал</div>
+            </div>
+            <div style={{ textAlign:'right' }}>
+              <div style={{ fontSize:9, textTransform:'uppercase', letterSpacing:'.12em', color:'var(--green)', marginBottom:3 }}>Модель 2.0</div>
+              <div style={{ fontFamily:'Syne', fontSize:20, fontWeight:700, color:'var(--green)' }}>{formatMoney(targetProfit)} ₽</div>
+              <div style={{ fontSize:10, color:'var(--text3)' }}>в месяц</div>
+            </div>
+          </div>
+        )
+      })()}
+
       {/* P&L таблица */}
       <Card style={{ marginBottom:14 }}>
         <div style={{

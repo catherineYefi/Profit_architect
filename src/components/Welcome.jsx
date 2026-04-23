@@ -104,7 +104,7 @@ export default function Welcome() {
       </button>
 
       <div style={{ marginTop: 14, textAlign: 'center', fontSize: 11, color: 'var(--text3)' }}>
-        Данные сессии не сохраняются после закрытия вкладки
+        Данные сессии сохраняются в вашем браузере
       </div>
     </div>
   )
